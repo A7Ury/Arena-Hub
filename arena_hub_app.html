@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Hub - A Plataforma Definitiva de Esports</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b',
+                            accent: '#34d399'
+                        },
+                        dark: {
+                            900: '#090d16',
+                            800: '#111827',
+                            700: '#1f2937',
+                            600: '#374151'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar and focus rings for WCAG 2.1 AA */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+        .focus-ring:focus-visible {
+            outline: 3px solid #34d399;
+            outline-offset: 2px;
+        }
+        .high-contrast {
+            filter: contrast(1.3);
+        }
+    </style>
+</head>
+<body class="bg-dark-900 text-gray-100 font-sans h-full flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+    <div id="app" class="flex h-full overflow-hidden relative">
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="w-64 bg-dark-800 border-r border-dark-700 flex flex-col z-20 transition-all duration-300 -translate-x-full md:translate-x-0 absolute md:relative h-full">
+            <!-- Logo Header -->
+            <div class="h-20 flex items-center px-6 border-b border-dark-700 justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-brand-500 to-emerald-700 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/20">
+                        <!-- Custom SVG 3D Angular 'A' Logo -->
+                        <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 2 22 7 22 12 7 17 22 22 22 12 2" fill="currentColor" fill-opacity="0.2"/>
+                            <polyline points="5.5 16 18.5 16"/>
+                            <path d="M12 2L2 22h5l5-15 5 15h5L12 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="text-lg font-black tracking-wider text-white">ARENA<span class="text-brand-500">HUB</span></span>
+                        <span class="block text-[10px] text-gray-400 font-medium tracking-widest uppercase">Esports Platform</span>
+                    </div>
+                </div>
+                <button onclick="toggleMobileSidebar()" class="md:hidden text-gray-400 hover:text-white focus-ring p-2 rounded-lg" aria-label="Fechar menu">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Links (5 Screens, no design system) -->
+            <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Menu Principal</p>
+                
+                <button onclick="switchScreen('home')" id="nav-home" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all focus-ring bg-brand-500/10 text-brand-400 border border-brand-500/20">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    <span>Home</span>
+                </button>
+
+                <button onclick="switchScreen('torneios')" id="nav-torneios" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all focus-ring text-gray-400 hover:text-white hover:bg-dark-700/50">
+                    <i data-lucide="trophy" class="w-5 h-5"></i>
+                    <span>Torneios</span>
+                </button>
+
+                <button onclick="switchScreen('detalhes-torneio')" id="nav-detalhes-torneio" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all focus-ring text-gray-400 hover:text-white hover:bg-dark-700/50">
+                    <i data-lucide="shield" class="w-5 h-5"></i>
+                    <span>Detalhes do Torneio</span>
+                </button>
+
+                <button onclick="switchScreen('comunidade')" id="nav-comunidade" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all focus-ring text-gray-400 hover:text-white hover:bg-dark-700/50">
+                    <i data-lucide="message-square" class="w-5 h-5"></i>
+                    <span>Comunidade</span>
+                </button>
+
+                <button onclick="switchScreen('perfil')" id="nav-perfil" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all focus-ring text-gray-400 hover:text-white hover:bg-dark-700/50">
+                    <i data-lucide="user" class="w-5 h-5"></i>
+                    <span>Perfil</span>
+                </button>
+            </nav>
+
+            <!-- Sidebar Footer / VIP PRO trigger -->
+            <div class="p-4 border-t border-dark-700">
+                <div class="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-2xl p-4 text-center">
+                    <div class="w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-2 text-amber-400">
+                        <i data-lucide="crown" class="w-4 h-4"></i>
+                    </div>
+                    <h4 class="text-xs font-bold text-amber-300 uppercase tracking-wide">Arena VIP PRO</h4>
+                    <p class="text-[11px] text-gray-400 mt-1">Torneios exclusivos, premiações em dinheiro e sem anúncios.</p>
+                    <button onclick="openVipModal()" class="mt-3 w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-dark-900 font-bold py-2 px-4 rounded-xl text-xs transition-all shadow-md shadow-amber-500/20 focus-ring">
+                        Assinar VIP PRO
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden bg-dark-900">
+            <!-- Top Navbar -->
+            <header class="h-20 bg-dark-800/80 backdrop-blur-md border-b border-dark-700 px-6 flex items-center justify-between z-10 shrink-0">
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleMobileSidebar()" class="md:hidden text-gray-400 hover:text-white focus-ring p-2 rounded-lg" aria-label="Abrir menu">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <div>
+                        <h1 id="screen-title" class="text-xl font-bold text-white tracking-tight">Visão Geral</h1>
+                        <p id="screen-subtitle" class="text-xs text-gray-400">Bem-vindo de volta, ProPlayer_99</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <!-- Accessibility Toggles -->
+                    <button onclick="toggleHighContrast()" title="Modo Alto Contraste" class="p-2.5 bg-dark-700 hover:bg-dark-600 text-gray-300 hover:text-white rounded-xl transition-all focus-ring">
+                        <i data-lucide="eye" class="w-5 h-5"></i>
+                    </button>
+                    
+                    <button onclick="openNotifications()" class="relative p-2.5 bg-dark-700 hover:bg-dark-600 text-gray-300 hover:text-white rounded-xl transition-all focus-ring" aria-label="Notificações">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-500 rounded-full animate-pulse"></span>
+                    </button>
+
+                    <!-- User Mini Profile -->
+                    <div class="flex items-center space-x-3 pl-3 border-l border-dark-700 cursor-pointer" onclick="switchScreen('perfil')">
+                        <img src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&q=80&w=150" alt="Avatar do usuário" class="w-10 h-10 rounded-xl object-cover border-2 border-brand-500/50">
+                        <div class="hidden sm:block text-left">
+                            <span class="block text-sm font-bold text-white leading-tight">ProPlayer_99</span>
+                            <span class="block text-[11px] text-brand-400 font-medium">VIP PRO Member</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Scrollable Dynamic Screen Container -->
+            <div id="screen-container" class="flex-1 overflow-y-auto p-6 lg:p-8 space-y-6">
+                <!-- Screens will be rendered via JavaScript -->
+            </div>
+        </main>
+    </div>
+
+    <!-- VIP PRO Modal -->
+    <div id="vip-modal" class="fixed inset-0 bg-dark-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-dark-800 border border-amber-500/30 rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative transform scale-95 transition-transform duration-300" id="vip-modal-content">
+            <button onclick="closeVipModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white p-2 rounded-lg focus-ring" aria-label="Fechar modal">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="text-center">
+                <div class="w-16 h-16 bg-amber-500/20 border border-amber-500/40 rounded-2xl flex items-center justify-center mx-auto mb-4 text-amber-400 shadow-lg shadow-amber-500/20">
+                    <i data-lucide="crown" class="w-8 h-8"></i>
+                </div>
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full">Exclusivo Arena Hub</span>
+                <h3 class="text-2xl font-extrabold text-white mt-3">Torne-se Membro VIP PRO</h3>
+                <p class="text-sm text-gray-300 mt-2">Desbloqueie acesso prioritário a campeonatos pagos, sem taxas de inscrição e premiações dobradas.</p>
+            </div>
+
+            <div class="mt-6 space-y-3">
+                <div class="flex items-center space-x-3 bg-dark-700/50 p-3 rounded-xl border border-dark-600">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-amber-400 shrink-0"></i>
+                    <span class="text-sm text-gray-200">Inscrição gratuita em todos os torneios semanais</span>
+                </div>
+                <div class="flex items-center space-x-3 bg-dark-700/50 p-3 rounded-xl border border-dark-600">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-amber-400 shrink-0"></i>
+                    <span class="text-sm text-gray-200">Badge exclusiva VIP PRO no perfil e chat</span>
+                </div>
+                <div class="flex items-center space-x-3 bg-dark-700/50 p-3 rounded-xl border border-dark-600">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-amber-400 shrink-0"></i>
+                    <span class="text-sm text-gray-200">Suporte prioritário 24/7 via Discord/App</span>
+                </div>
+            </div>
+
+            <div class="mt-8 flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-gray-400 block">Plano Mensal</span>
+                    <span class="text-2xl font-black text-white">R$ 29,90<span class="text-sm font-normal text-gray-400">/mês</span></span>
+                </div>
+                <button onclick="subscribeVip()" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-dark-900 font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-amber-500/30 focus-ring min-h-[44px]">
+                    Assinar Agora
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="fixed inset-0 bg-dark-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-dark-800 border border-dark-700 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative transform scale-95 transition-transform duration-300" id="edit-profile-content">
+            <button onclick="closeEditProfileModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white p-2 rounded-lg focus-ring" aria-label="Fechar modal">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="w-10 h-10 bg-brand-500/20 text-brand-400 rounded-xl flex items-center justify-center">
+                    <i data-lucide="user-pen" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white">Editar Perfil</h3>
+                    <p class="text-xs text-gray-400">Atualize suas informações públicas de jogador</p>
+                </div>
+            </div>
+
+            <form id="edit-profile-form" onsubmit="saveProfile(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1" for="input-username">Nome de Jogador (Nickname)</label>
+                    <input type="text" id="input-username" value="ProPlayer_99" required class="w-full bg-dark-700 border border-dark-600 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-500 focus-ring min-h-[44px]">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1" for="input-bio">Biografia / Slogan</label>
+                    <textarea id="input-bio" rows="2" class="w-full bg-dark-700 border border-dark-600 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-500 focus-ring resize-none">Atleta profissional de Esports | FPS & MOBA Enthusiast 🏆</textarea>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1" for="input-game">Jogo Principal</label>
+                        <select id="input-game" class="w-full bg-dark-700 border border-dark-600 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-500 focus-ring min-h-[44px]">
+                            <option value="League of Legends">League of Legends</option>
+                            <option value="Valorant">Valorant</option>
+                            <option value="CS2">Counter-Strike 2</option>
+                            <option value="Free Fire">Free Fire</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 md-1" for="input-discord">Discord ID</label>
+                        <input type="text" id="input-discord" value="ProPlayer#0001" class="w-full bg-dark-700 border border-dark-600 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-500 focus-ring min-h-[44px]">
+                    </div>
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeEditProfileModal()" class="px-5 py-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 text-gray-300 font-semibold text-sm transition-all focus-ring min-h-[44px]">Cancelar</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm transition-all shadow-lg shadow-brand-500/20 focus-ring min-h-[44px]">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <script>
+        // State management
+        let currentScreen = 'home';
+        let highContrastActive = false;
+        let selectedCommunityTeam = 'Alpha 7';
+        let userProfile = {
+            username: 'ProPlayer_99',
+            bio: 'Atleta profissional de Esports | FPS & MOBA Enthusiast 🏆',
+            game: 'League of Legends',
+            discord: 'ProPlayer#0001',
+            vip: true
+        };
+
+        // Community posts database keyed by team
+        const communityData = {
+            'Alpha 7': [
+                { id: 1, author: 'A7_Carrilho', time: 'Há 15 min', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150', content: 'Foco total no bootcamp para a próxima fase do PMPL! Quem vamos treinar hoje?', likes: 142, comments: 28 },
+                { id: 2, author: 'A7_Vnc', time: 'Há 2 horas', avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&q=80&w=150', content: 'Nova line-up fechada e pronta para dominar a Arena Hub. Vamos com tudo!', likes: 389, comments: 54 }
+            ],
+            'LOUD': [
+                { id: 1, author: 'LOUD Saadhak', time: 'Há 30 min', avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&q=80&w=150', content: 'Treino pesado finalizado. A torcida pode esperar muita agressividade no próximo mapa!', likes: 1250, comments: 180 },
+                { id: 2, author: 'LOUD Cauanzin', time: 'Há 4 horas', avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=150', content: 'Alguém online pra um ranked duo de Valorant? Procurem meu nick na plataforma.', likes: 620, comments: 95 }
+            ],
+            'FURIA': [
+                { id: 1, author: 'Furia FalleN', time: 'Há 1 hora', avatar: 'https://images.unsplash.com/photo-1628157582853-a796fa650a6a?auto=format&fit=crop&q=80&w=150', content: 'Ajustando utilitários na Mirage. O campeonato na Arena Hub vai ser o aquecimento perfeito.', likes: 890, comments: 112 }
+            ]
+        };
+
+        // Initialize Lucide icons on load
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderScreen();
+        });
+
+        // Navigation Switcher
+        function switchScreen(screenName) {
+            currentScreen = screenName;
+            
+            // Update active state in sidebar
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-500/10', 'text-brand-400', 'border', 'border-brand-500/20');
+                btn.classList.add('text-gray-400', 'hover:text-white', 'hover:bg-dark-700/50');
+            });
+
+            const activeBtn = document.getElementById(`nav-${screenName}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-400', 'hover:text-white', 'hover:bg-dark-700/50');
+                activeBtn.classList.add('bg-brand-500/10', 'text-brand-400', 'border', 'border-brand-500/20');
+            }
+
+            // Close mobile sidebar if open
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.add('-translate-x-full');
+            }
+
+            renderScreen();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Render Screen Content dynamically
+        function renderScreen() {
+            const container = document.getElementById('screen-container');
+            const titleEl = document.getElementById('screen-title');
+            const subtitleEl = document.getElementById('screen-subtitle');
+
+            container.innerHTML = '';
+
+            switch(currentScreen) {
+                case 'home':
+                    titleEl.innerText = 'Visão Geral';
+                    subtitleEl.innerText = 'Bem-vindo de volta, ' + userProfile.username;
+                    container.innerHTML = getHomeScreenHTML();
+                    break;
+                case 'torneios':
+                    titleEl.innerText = 'Torneios Ativos';
+                    subtitleEl.innerText = 'Encontre campeonatos e dispute premiações';
+                    container.innerHTML = getTorneiosScreenHTML();
+                    break;
+                case 'detalhes-torneio':
+                    titleEl.innerText = 'Detalhes do Torneio';
+                    subtitleEl.innerText = 'Copa Pro Series - League of Legends S4';
+                    container.innerHTML = getDetalhesTorneioScreenHTML();
+                    break;
+                case 'comunidade':
+                    titleEl.innerText = 'Comunidade & Guildas';
+                    subtitleEl.innerText = 'Conecte-se com equipes e jogadores profissionais';
+                    container.innerHTML = getComunidadeScreenHTML();
+                    break;
+                case 'perfil':
+                    titleEl.innerText = 'Meu Perfil';
+                    subtitleEl.innerText = 'Estatísticas, emblemas e configurações';
+                    container.innerHTML = getPerfilScreenHTML();
+                    break;
+            }
+            lucide.createIcons();
+        }
+
+        // HTML Generators for each screen
+        function getHomeScreenHTML() {
+            return `
+                <!-- Hero Banner with high quality Unsplash gaming image -->
+                <div class="relative rounded-3xl overflow-hidden bg-gradient-to-r from-dark-800 to-dark-700 border border-dark-700 p-8 shadow-xl">
+                    <div class="absolute inset-0 z-0 opacity-40 mix-blend-overlay">
+                        <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800" alt="Esports Gaming Setup" class="w-full h-full object-cover">
+                    </div>
+                    <div class="relative z-10 max-w-2xl space-y-4">
+                        <span class="inline-flex items-center space-x-2 bg-brand-500/20 text-brand-400 border border-brand-500/30 px-3 py-1 rounded-full text-xs font-bold">
+                            <span class="w-2 h-2 rounded-full bg-brand-500 animate-ping"></span>
+                            <span>TEMPORADA 2026 OFICIAL</span>
+                        </span>
+                        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Domine a Arena. Conquiste a Glória.</h2>
+                        <p class="text-sm sm:text-base text-gray-300">Participe dos maiores torneios de Esports da América Latina, junte-se a equipes profissionais e dispute prêmios em dinheiro real.</p>
+                        <div class="flex flex-wrap gap-3 pt-2">
+                            <button onclick="switchScreen('torneios')" class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg shadow-brand-500/20 focus-ring min-h-[44px]">
+                                Explorar Torneios
+                            </button>
+                            <button onclick="openVipModal()" class="bg-dark-700 hover:bg-dark-600 border border-dark-600 text-white font-bold px-6 py-3 rounded-xl transition-all focus-ring min-h-[44px]">
+                                Seja VIP PRO
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-dark-800 border border-dark-700 p-5 rounded-2xl flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-brand-500/10 text-brand-400 rounded-xl flex items-center justify-center shrink-0">
+                            <i data-lucide="trophy" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-400 block font-medium">Torneios Disputados</span>
+                            <span class="text-2xl font-black text-white">48</span>
+                        </div>
+                    </div>
+                    <div class="bg-dark-800 border border-dark-700 p-5 rounded-2xl flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center shrink-0">
+                            <i data-lucide="award" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-400 block font-medium">Taxa de Vitória</span>
+                            <span class="text-2xl font-black text-white">68.4%</span>
+                        </div>
+                    </div>
+                    <div class="bg-dark-800 border border-dark-700 p-5 rounded-2xl flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center shrink-0">
+                            <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-400 block font-medium">Premiações Ganhas</span>
+                            <span class="text-2xl font-black text-white">R$ 4.250</span>
+                        </div>
+                    </div>
+                    <div class="bg-dark-800 border border-dark-700 p-5 rounded-2xl flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-purple-500/10 text-purple-400 rounded-xl flex items-center justify-center shrink-0">
+                            <i data-lucide="users" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-400 block font-medium">Ranking Global</span>
+                            <span class="text-2xl font-black text-white">#142</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Featured Matches / Events (With mandatory League of Legends EM ANDAMENTO card) -->
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-white">Eventos em Destaque</h3>
+                        <button onclick="switchScreen('torneios')" class="text-xs font-semibold text-brand-400 hover:text-brand-300">Ver todos</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- League of Legends 'EM ANDAMENTO' card with fixed Unsplash image -->
+                        <div class="bg-dark-800 border border-dark-700 rounded-2xl overflow-hidden shadow-lg flex flex-col group hover:border-brand-500/50 transition-all">
+                            <div class="relative h-48 overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800" alt="League of Legends Pro Championship" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute inset-0 bg-gradient-to-t from-dark-900 via-transparent to-transparent"></div>
+                                <span class="absolute top-3 left-3 bg-brand-500 text-white font-bold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider flex items-center space-x-1.5 shadow-md">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                                    <span>EM ANDAMENTO</span>
+                                </span>
+                            </div>
+                            <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                                <div>
+                                    <span class="text-xs text-brand-400 font-semibold uppercase tracking-wider">League of Legends</span>
+                                    <h4 class="text-lg font-bold text-white mt-1">Copa Pro Series S4 - Quartas</h4>
+                                    <p class="text-xs text-gray-400 mt-1">Premiação: R$ 10.000 + Vaga Mundial</p>
+                                </div>
+                                <button onclick="switchScreen('detalhes-torneio')" class="w-full bg-dark-700 hover:bg-brand-500 hover:text-white text-gray-200 font-semibold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center space-x-2 focus-ring min-h-[44px]">
+                                    <span>Acompanhar Partida</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Valorant Masters Card -->
+                        <div class="bg-dark-800 border border-dark-700 rounded-2xl overflow-hidden shadow-lg flex flex-col group hover:border-brand-500/50 transition-all">
+                            <div class="relative h-48 overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=800" alt="Valorant Championship" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute inset-0 bg-gradient-to-t from-dark-900 via-transparent to-transparent"></div>
+                                <span class="absolute top-3 left-3 bg-amber-500 text-dark-900 font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
+                                    INSCRIÇÕES ABERTAS
+                                </span>
+                            </div>
+                            <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                                <div>
+                                    <span class="text-xs text-amber-400 font-semibold uppercase tracking-wider">Valorant</span>
+                                    <h4 class="text-lg font-bold text-white mt-1">Valorant Challengers Cup</h4>
+                                    <p class="text-xs text-gray-400 mt-1">Premiação: R$ 15.000</p>
+                                </div>
+                                <button onclick="switchScreen('torneios')" class="w-full bg-dark-700 hover:bg-amber-500 hover:text-dark-900 text-gray-200 font-semibold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center space-x-2 focus-ring min-h-[44px]">
+                                    <span>Inscrever-se</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- CS2 Major qualifier -->
+                        <div class="bg-dark-800 border border-dark-700 rounded-2xl overflow-hidden shadow-lg flex flex-col group hover:border-brand-500/50 transition-all">
+                            <div class="relative h-48 overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&q=80&w=800" alt="CS2 Championship" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute inset-0 bg-gradient-to-t from-dark-900 via-transparent to-transparent"></div>
+                                <span class="absolute top-3 left-3 bg-blue-500 text-white font-bold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
+                                    EM BREVE
+                                </span>
+                            </div>
+                            <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                                <div>
+                                    <span class="text-xs text-blue-400 font-semibold uppercase tracking-wider">Counter-Strike 2</span>
+                                    <h4 class="text-lg font-bold text-white mt-1">CS2 Elite Showdown</h4>
+                                    <p class="text-xs text-gray-400 mt-1">Premiação: R$ 25.000</p>
+                                </div>
+                                <button onclick="switchScreen('torneios')" class="w-full bg-dark-700 hover:bg-blue-500 hover:text-white text-gray-200 font-semibold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center space-x-2 focus-ring min-h-[44px]">
+                                    <span>Ver Detalhes</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getTorneiosScreenHTML() {
+            return `
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-dark-800 p-6 rounded-2xl border border-dark-700">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Todos os Torneios</h2>
+                        <p class="text-xs text-gray-400">Filtre por jogo ou status para encontrar sua próxima competição.</p>
+                    </div>
+                    <div class="flex items-center space-x-3 w-full sm:w-auto">
+                        <select onchange="showToast('Filtro aplicado com sucesso!')" class="bg-dark-700 border border-dark-600 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500 focus-ring w-full sm:w-auto min-h-[44px]">
+                            <option>Todos os Jogos</option>
+                            <option>League of Legends</option>
+                            <option>Valorant</option>
+                            <option>Counter-Strike 2</option>
+                            <option>Free Fire</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Tournament Item 1 -->
+                    <div class="bg-dark-800 border border-dark-700 p-6 rounded-2xl flex flex-col justify-between space-y-4 hover:border-brand-500/50 transition-all">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-brand-500/10 text-brand-400 rounded-2xl flex items-center justify-center">
+                                    <i data-lucide="shield" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-bold text-brand-400 uppercase tracking-wider">League of Legends</span>
+                                    <h3 class="text-lg font-bold text-white">Copa Pro Series S4</h3>
+                                </div>
+                            </div>
+                            <span class="bg-brand-500/20 text-brand-400 text-xs font-bold px-3 py-1 rounded-full border border-brand-500/30">Em Andamento</span>
+                        </div>
+                        <p class="text-xs text-gray-300">Competição oficial de alto nível com transmissão ao vivo e premiação em dinheiro.</p>
+                        <div class="grid grid-cols-3 gap-2 py-3 border-y border-dark-700 text-center">
+                            <div>
+                                <span class="text-[10px] text-gray-400 block">Premiação</span>
+                                <span class="text-sm font-bold text-white">R$ 10.000</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-gray-400 block">Equipes</span>
+                                <span class="text-sm font-bold text-white">16 / 16</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-gray-400 block">Formato</span>
+                                <span class="text-sm font-bold text-white">Eliminação</span>
+                            </div>
+                        </div>
+                        <button onclick="switchScreen('detalhes-torneio')" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-xs transition-all shadow-md shadow-brand-500/20 focus-ring min-h-[44px]">
+                            Ver Chaveamento & Detalhes
+                        </button>
+                    </div>
+
+                    <!-- Tournament Item 2 -->
+                    <div class="bg-dark-800 border border-dark-700 p-6 rounded-2xl flex flex-col justify-between space-y-4 hover:border-amber-500/50 transition-all">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center">
+                                    <i data-lucide="crosshair" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Valorant</span>
+                                    <h3 class="text-lg font-bold text-white">Valorant Challengers Cup</h3>
+                                </div>
+                            </div>
+                            <span class="bg-amber-500/20 text-amber-400 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30">Inscrições Abertas</span>
+                        </div>
+                        <p class="text-xs text-gray-300">Mostre a mira afiada da sua equipe e garanta vaga no circuito principal.</p>
+                        <div class="grid grid-cols-3 gap-2 py-3 border-y border-dark-700 text-center">
+                            <div>
+                                <span class="text-[10px] text-gray-400 block">Premiação</span>
+                                <span class="text-sm font-bold text-white">R$ 15.000</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-gray-400 block">Equipes</span>
+                                <span class="text-sm font-bold text-white">28 / 32</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-gray-400 block">Formato</span>
+                                <span class="text-sm font-bold text-white">MD3 Groups</span>
+                            </div>
+                        </div>
+                        <button onclick="showToast('Inscrição realizada com sucesso! Boa sorte.')" class="w-full bg-amber-500 hover:bg-amber-600 text-dark-900 font-bold py-3 rounded-xl text-xs transition-all shadow-md shadow-amber-500/20 focus-ring min-h-[44px]">
+                            Inscrever Equipe Agora
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getDetalhesTorneioScreenHTML() {
+            return `
+                <!-- Tournament Header banner -->
+                <div class="bg-gradient-to-r from-dark-800 to-dark-700 border border-dark-700 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 bg-brand-500/20 border border-brand-500/40 rounded-2xl flex items-center justify-center text-brand-400 shrink-0">
+                            <i data-lucide="trophy" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-bold bg-brand-500 text-white px-2.5 py-0.5 rounded-full uppercase">League of Legends</span>
+                                <span class="text-xs text-brand-400 font-medium">Série A • Rodada 4</span>
+                            </div>
+                            <h2 class="text-2xl font-black text-white mt-1">Copa Pro Series S4</h2>
+                            <p class="text-xs text-gray-300 mt-1">Organizado por Arena Hub Oficial • Transmissão ao vivo na Twitch</p>
+                        </div>
+                    </div>
+                    <button onclick="showToast('Você já está inscrito nesta competição!')" class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition-all shadow-lg shadow-brand-500/20 focus-ring min-h-[44px]">
+                        Ver Check-in / Partidas
+                    </button>
+                </div>
+
+                <!-- Tabs & Bracket Preview -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Bracket Section -->
+                        <div class="bg-dark-800 border border-dark-700 p-6 rounded-3xl space-y-4">
+                            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                                <i data-lucide="git-branch" class="w-5 h-5 text-brand-400"></i>
+                                <span>Chaveamento das Quartas de Final</span>
+                            </h3>
+
+                            <div class="space-y-3">
+                                <div class="bg-dark-700/50 border border-dark-600 p-4 rounded-2xl flex items-center justify-between">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center space-x-3">
+                                            <span class="w-3 h-3 rounded-full bg-brand-500"></span>
+                                            <span class="text-sm font-bold text-white">Alpha 7 Esports</span>
+                                            <span class="text-xs bg-brand-500/20 text-brand-400 px-2 py-0.5 rounded font-mono">2</span>
+                                        </div>
+                                        <div class="flex items-center space-x-3">
+                                            <span class="w-3 h-3 rounded-full bg-gray-600"></span>
+                                            <span class="text-sm font-medium text-gray-300">Red Canids Academy</span>
+                                            <span class="text-xs bg-dark-600 text-gray-400 px-2 py-0.5 rounded font-mono">0</span>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-bold text-brand-400 bg-brand-500/10 px-3 py-1 rounded-lg">FINALIZADO</span>
+                                </div>
+
+                                <div class="bg-dark-700/50 border border-dark-600 p-4 rounded-2xl flex items-center justify-between">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center space-x-3">
+                                            <span class="w-3 h-3 rounded-full bg-brand-500 animate-pulse"></span>
+                                            <span class="text-sm font-bold text-white">LOUD Academy</span>
+                                            <span class="text-xs bg-brand-500/20 text-brand-400 px-2 py-0.5 rounded font-mono">1</span>
+                                        </div>
+                                        <div class="flex items-center space-x-3">
+                                            <span class="w-3 h-3 rounded-full bg-brand-500 animate-pulse"></span>
+                                            <span class="text-sm font-bold text-white">FURIA Gaming</span>
+                                            <span class="text-xs bg-brand-500/20 text-brand-400 px-2 py-0.5 rounded font-mono">1</span>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1 rounded-lg">AO VIVO (Mapa 3)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Rules & Info -->
+                    <div class="space-y-6">
+                        <div class="bg-dark-800 border border-dark-700 p-6 rounded-3xl space-y-4">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Regras Oficiais</h3>
+                            <ul class="space-y-2.5 text-xs text-gray-300">
+                                <li class="flex items-start space-x-2">
+                                    <i data-lucide="check" class="w-4 h-4 text-brand-400 shrink-0 mt-0.5"></i>
+                                    <span>Versão do patch atualizada no servidor oficial.</span>
+                                </li>
+                                <li class="flex items-start space-x-2">
+                                    <i data-lucide="check" class="w-4 h-4 text-brand-400 shrink-0 mt-0.5"></i>
+                                    <span>Check-in obrigatório 30 minutos antes da partida.</span>
+                                </li>
+                                <li class="flex items-start space-x-2">
+                                    <i data-lucide="check" class="w-4 h-4 text-brand-400 shrink-0 mt-0.5"></i>
+                                    <span>Proibido uso de macros ou softwares de terceiros.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getComunidadeScreenHTML() {
+            const posts = communityData[selectedCommunityTeam] || [];
+            return `
+                <!-- Community Team Switcher Header -->
+                <div class="bg-dark-800 border border-dark-700 p-6 rounded-3xl space-y-4">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">Comunidade & Guildas</h2>
+                            <p class="text-xs text-gray-400">Alterne entre as equipes parceiras para ver publicações oficiais.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            ${['Alpha 7', 'LOUD', 'FURIA'].map(team => `
+                                <button onclick="switchCommunityTeam('${team}')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all focus-ring min-h-[44px] ${selectedCommunityTeam === team ? 'bg-brand-500 text-white shadow-md shadow-brand-500/20' : 'bg-dark-700 hover:bg-dark-600 text-gray-300'}">
+                                    ${team}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feed Area -->
+                <div class="max-w-2xl mx-auto space-y-6">
+                    <!-- New Post Box -->
+                    <div class="bg-dark-800 border border-dark-700 p-5 rounded-3xl space-y-3">
+                        <div class="flex items-center space-x-3">
+                            <img src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&q=80&w=150" alt="Avatar" class="w-10 h-10 rounded-xl object-cover">
+                            <input type="text" id="new-post-input" placeholder="Compartilhe algo com a torcida da ${selectedCommunityTeam}..." class="flex-1 bg-dark-700 border border-dark-600 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-brand-500 focus-ring min-h-[44px]">
+                        </div>
+                        <div class="flex justify-end">
+                            <button onclick="submitCommunityPost()" class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-all shadow-md shadow-brand-500/20 focus-ring min-h-[44px]">
+                                Publicar na Guilda
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Posts List -->
+                    <div id="community-posts-list" class="space-y-4">
+                        ${posts.map(post => `
+                            <div class="bg-dark-800 border border-dark-700 p-6 rounded-3xl space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <img src="${post.avatar}" alt="${post.author}" class="w-10 h-10 rounded-xl object-cover border border-brand-500/30">
+                                        <div>
+                                            <h4 class="text-sm font-bold text-white">${post.author}</h4>
+                                            <span class="text-[11px] text-gray-400">${post.time} • Equipe ${selectedCommunityTeam}</span>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs bg-brand-500/10 text-brand-400 px-3 py-1 rounded-full font-semibold">Oficial</span>
+                                </div>
+                                <p class="text-sm text-gray-200">${post.content}</p>
+                                <div class="flex items-center space-x-6 pt-2 border-t border-dark-700 text-xs text-gray-400">
+                                    <button onclick="showToast('Curtida registrada!')" class="flex items-center space-x-1.5 hover:text-brand-400 transition-colors focus-ring p-1 rounded">
+                                        <i data-lucide="heart" class="w-4 h-4"></i>
+                                        <span>${post.likes}</span>
+                                    </button>
+                                    <button onclick="showToast('Comentários abertos!')" class="flex items-center space-x-1.5 hover:text-brand-400 transition-colors focus-ring p-1 rounded">
+                                        <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                        <span>${post.comments} Comentários</span>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function getPerfilScreenHTML() {
+            return `
+                <div class="bg-dark-800 border border-dark-700 rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
+                        <img src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&q=80&w=150" alt="Avatar" class="w-24 h-24 rounded-2xl object-cover border-4 border-brand-500 shadow-xl shrink-0">
+                        <div class="text-center sm:text-left space-y-2 flex-1">
+                            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                                <h2 class="text-2xl font-bold text-white">${userProfile.username}</h2>
+                                <span class="bg-amber-500/20 text-amber-400 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30 flex items-center space-x-1">
+                                    <i data-lucide="crown" class="w-3.5 h-3.5"></i>
+                                    <span>VIP PRO</span>
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-300">${userProfile.bio}</p>
+                            <div class="flex flex-wrap gap-4 pt-2 justify-center sm:justify-start text-xs text-gray-400">
+                                <div><strong class="text-white">Jogo:</strong> ${userProfile.game}</div>
+                                <div><strong class="text-white">Discord:</strong> ${userProfile.discord}</div>
+                            </div>
+                        </div>
+                        <button onclick="openEditProfileModal()" class="bg-dark-700 hover:bg-dark-600 border border-dark-600 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-all flex items-center space-x-2 focus-ring min-h-[44px]">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            <span>Editar Perfil</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats & Badges Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-dark-800 border border-dark-700 p-6 rounded-3xl space-y-4">
+                        <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                            <i data-lucide="award" class="w-5 h-5 text-brand-400"></i>
+                            <span>Conquistas e Emblemas</span>
+                        </h3>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="bg-dark-700/50 p-4 rounded-2xl text-center border border-dark-600">
+                                <div class="w-10 h-10 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center mx-auto mb-2">
+                                    <i data-lucide="trophy" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-xs font-bold text-white block">MVP S3</span>
+                                <span class="text-[10px] text-gray-400">Campeão LoL</span>
+                            </div>
+                            <div class="bg-dark-700/50 p-4 rounded-2xl text-center border border-dark-600">
+                                <div class="w-10 h-10 bg-brand-500/20 text-brand-400 rounded-xl flex items-center justify-center mx-auto mb-2">
+                                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-xs font-bold text-white block">Fundador</span>
+                                <span class="text-[10px] text-gray-400">Membro 2024</span>
+                            </div>
+                            <div class="bg-dark-700/50 p-4 rounded-2xl text-center border border-dark-600">
+                                <div class="w-10 h-10 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center mx-auto mb-2">
+                                    <i data-lucide="zap" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-xs font-bold text-white block">Sniper Pro</span>
+                                <span class="text-[10px] text-gray-400">100 Kills</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-dark-800 border border-dark-700 p-6 rounded-3xl space-y-4">
+                        <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                            <i data-lucide="settings" class="w-5 h-5 text-brand-400"></i>
+                            <span>Preferências de Conta</span>
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between bg-dark-700/50 p-3.5 rounded-2xl border border-dark-600">
+                                <span class="text-xs text-gray-200 font-medium">Notificações Push no App</span>
+                                <input type="checkbox" checked class="w-4 h-4 accent-brand-500 rounded cursor-pointer">
+                            </div>
+                            <div class="flex items-center justify-between bg-dark-700/50 p-3.5 rounded-2xl border border-dark-600">
+                                <span class="text-xs text-gray-200 font-medium">Modo Alto Contraste (WCAG)</span>
+                                <input type="checkbox" ${highContrastActive ? 'checked' : ''} onchange="toggleHighContrast()" class="w-4 h-4 accent-brand-500 rounded cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Community Team Switcher
+        function switchCommunityTeam(team) {
+            selectedCommunityTeam = team;
+            renderScreen();
+        }
+
+        // Submit new community post
+        function submitCommunityPost() {
+            const input = document.getElementById('new-post-input');
+            if (!input || !input.value.trim()) {
+                showToast('Digite algo para publicar!');
+                return;
+            }
+            if (!communityData[selectedCommunityTeam]) {
+                communityData[selectedCommunityTeam] = [];
+            }
+            communityData[selectedCommunityTeam].unshift({
+                id: Date.now(),
+                author: userProfile.username,
+                time: 'Agora mesmo',
+                avatar: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&q=80&w=150',
+                content: input.value,
+                likes: 0,
+                comments: 0
+            });
+            input.value = '';
+            showToast('Publicação enviada com sucesso!');
+            renderScreen();
+        }
+
+        // Mobile Sidebar Toggle
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
+
+        // High Contrast Mode Toggle
+        function toggleHighContrast() {
+            highContrastActive = !highContrastActive;
+            document.body.classList.toggle('high-contrast', highContrastActive);
+            showToast(highContrastActive ? 'Modo alto contraste ativado' : 'Modo alto contraste desativado');
+        }
+
+        // Notifications action
+        function openNotifications() {
+            showToast('Você não possui novas notificações pendentes.');
+        }
+
+        // VIP Modal Controls
+        function openVipModal() {
+            const modal = document.getElementById('vip-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                document.getElementById('vip-modal-content').classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeVipModal() {
+            const modal = document.getElementById('vip-modal');
+            modal.classList.add('opacity-0');
+            document.getElementById('vip-modal-content').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function subscribeVip() {
+            userProfile.vip = true;
+            closeVipModal();
+            showToast('Parabéns! Agora você é membro VIP PRO.');
+            if (currentScreen === 'perfil') {
+                renderScreen();
+            }
+        }
+
+        // Edit Profile Modal Controls
+        function openEditProfileModal() {
+            const modal = document.getElementById('edit-profile-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                document.getElementById('edit-profile-content').classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeEditProfileModal() {
+            const modal = document.getElementById('edit-profile-modal');
+            modal.classList.add('opacity-0');
+            document.getElementById('edit-profile-content').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function saveProfile(e) {
+            e.preventDefault();
+            userProfile.username = document.getElementById('input-username').value;
+            userProfile.bio = document.getElementById('input-bio').value;
+            userProfile.game = document.getElementById('input-game').value;
+            userProfile.discord = document.getElementById('input-discord').value;
+
+            closeEditProfileModal();
+            showToast('Perfil atualizado com sucesso!');
+            if (currentScreen === 'perfil' || currentScreen === 'home') {
+                renderScreen();
+            }
+        }
+
+        // Toast Notification System
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = 'bg-dark-800 border border-brand-500 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 pointer-events-auto transform translate-y-4 opacity-0 transition-all duration-300';
+            toast.innerHTML = `
+                <i data-lucide="check-circle" class="w-4 h-4 text-brand-400 shrink-0"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
