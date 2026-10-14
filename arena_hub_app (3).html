@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="pt-PT" class="dark h-full bg-zinc-950">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Arena Hub - Mobile eSports Platform</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 400: '#34d399', 500: '#10b981', 600: '#059669' },
+            vip: { 400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed' }
+          },
+          fontFamily: { sans: ['Inter', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .high-contrast { background-color: #000000 !important; color: #ffffff !important; }
+    .touch-target { min-width: 44px; min-height: 44px; }
+    
+    .bottom-sheet { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    .bottom-sheet.closed { transform: translateY(100%); }
+    .drawer { transition: transform 0.3s ease-out; }
+    .drawer.closed { transform: translateX(-100%); }
+
+    .pulse-quick { animation: pulseQuick 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    @keyframes pulseQuick {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+
+<body class="bg-zinc-950 text-zinc-100 h-full flex justify-center items-center overflow-x-hidden md:py-6">
+
+  <div id="appContainer" class="w-full max-w-md h-full md:h-[844px] md:max-h-[90vh] bg-zinc-950 md:border-8 md:border-zinc-800 md:rounded-[40px] shadow-2xl relative flex flex-col overflow-hidden">
+    
+    <!-- Top Bar -->
+    <header class="bg-zinc-900/95 backdrop-blur-md border-b border-zinc-800/80 px-4 h-14 flex items-center justify-between shrink-0 sticky top-0 z-30">
+      <div class="flex items-center gap-3">
+        <button id="openDrawerBtn" class="touch-target flex items-center justify-center text-zinc-300 hover:text-white rounded-lg" aria-label="Abrir menu">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+        <div class="flex items-center gap-2">
+          <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+            <path d="M50 10 L85 90 L70 90 L50 45 L30 90 L15 90 Z" fill="#10b981" />
+            <path d="M35 70 L65 70 L60 80 L40 80 Z" fill="#8b5cf6" />
+          </svg>
+          <span class="font-extrabold text-lg tracking-tight text-white">ARENA<span class="text-emerald-400">HUB</span></span>
+        </div>
+      </div>
+      <div class="flex items-center gap-1">
+        <button onclick="switchTab('profile')" class="touch-target ml-1 p-0.5 rounded-full ring-2 ring-emerald-500/50" aria-label="Perfil">
+          <img id="headerAvatarImg" src="https://images.unsplash.com/photo-1566577739112-5180d4bf9390?auto=format&fit=crop&q=80&w=200" class="w-8 h-8 rounded-full object-cover" />
+        </button>
+      </div>
+    </header>
+
+    <!-- Drawer Lateral -->
+    <div id="drawerOverlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden" onclick="closeDrawer()"></div>
+    <aside id="drawer" class="drawer closed fixed top-0 left-0 bottom-0 w-72 bg-zinc-900 z-50 flex flex-col border-r border-zinc-800 shadow-2xl">
+      <div class="p-4 border-b border-zinc-800/60 bg-zinc-900/50 flex items-center gap-3 mt-14">
+        <img id="drawerAvatarImg" src="https://images.unsplash.com/photo-1566577739112-5180d4bf9390?auto=format&fit=crop&q=80&w=200" class="w-12 h-12 rounded-full object-cover border border-emerald-500/40" />
+        <div class="overflow-hidden">
+          <h4 id="drawerUserName" class="font-bold text-white text-sm truncate">Yuri Honorato</h4>
+          <p id="drawerUserRole" class="text-xs text-emerald-400 font-medium truncate">Honor of Kings • Jungler</p>
+        </div>
+      </div>
+      <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+        <button onclick="navigateDrawer('home')" class="w-full touch-target px-4 py-3 flex items-center gap-3 text-zinc-300 hover:bg-zinc-800 rounded-xl text-sm font-semibold">
+          <i data-lucide="home" class="w-5 h-5 text-emerald-400"></i> Início
+        </button>
+        <button onclick="navigateDrawer('tournaments')" class="w-full touch-target px-4 py-3 flex items-center gap-3 text-zinc-300 hover:bg-zinc-800 rounded-xl text-sm font-semibold">
+          <i data-lucide="trophy" class="w-5 h-5 text-amber-400"></i> Torneios
+        </button>
+        <button onclick="navigateDrawer('community')" class="w-full touch-target px-4 py-3 flex items-center gap-3 text-zinc-300 hover:bg-zinc-800 rounded-xl text-sm font-semibold">
+          <i data-lucide="users" class="w-5 h-5 text-violet-400"></i> Comunidade
+        </button>
+        <button onclick="navigateDrawer('profile')" class="w-full touch-target px-4 py-3 flex items-center gap-3 text-zinc-300 hover:bg-zinc-800 rounded-xl text-sm font-semibold">
+          <i data-lucide="user" class="w-5 h-5 text-cyan-400"></i> Meu Perfil
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="mainContent" class="flex-1 overflow-y-auto p-4 space-y-6 pb-24">
+      
+      <!-- SCREEN 1: HOME -->
+      <section id="screen-home" class="space-y-5 animate-in fade-in duration-300">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 space-y-3 relative overflow-hidden">
+          <div class="absolute top-0 right-0 bg-red-500/20 text-red-400 px-3 py-1 rounded-bl-xl text-[10px] font-extrabold uppercase border-l border-b border-red-500/30 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> AO VIVO
+          </div>
+
+          <div class="text-xs text-zinc-400 font-medium flex items-center gap-1.5">
+            <i data-lucide="gamepad-2" class="w-4 h-4 text-emerald-400"></i> Honor of Kings Pro Series • Final BO3
+          </div>
+
+          <div class="flex items-center justify-between py-2">
+            <div class="text-center flex-1">
+              <span class="font-extrabold text-white text-base block">Alpha 7</span>
+              <span class="text-[10px] text-zinc-500">Blue Side</span>
+            </div>
+            <div class="px-4 py-1.5 bg-zinc-950 rounded-xl border border-zinc-800 text-center">
+              <span class="text-lg font-black text-emerald-400 tracking-wider">1 - 0</span>
+              <span class="block text-[9px] text-zinc-500">Jogo 2 • 14:22</span>
+            </div>
+            <div class="text-center flex-1">
+              <span class="font-extrabold text-white text-base block">Influence Rage</span>
+              <span class="text-[10px] text-zinc-500">Red Side</span>
+            </div>
+          </div>
+
+          <button onclick="openLiveMatchModal(1)" class="w-full touch-target bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold text-xs py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10">
+            <i data-lucide="radio" class="w-4 h-4"></i> Acompanhar Partida em Detalhe
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 font-bold">🏆</div>
+            <div>
+              <span class="text-xs text-zinc-400 block font-medium">Torneios Ativos</span>
+              <span class="text-sm font-extrabold text-white">5 Campeonatos</span>
+            </div>
+          </div>
+          <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400 font-bold">👥</div>
+            <div>
+              <span class="text-xs text-zinc-400 block font-medium">Comunidade</span>
+              <span class="text-sm font-extrabold text-white">+5.4k Jogadores</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative w-full h-44 rounded-2xl overflow-hidden border border-zinc-800 shadow-lg">
+          <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-cover" />
+          <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 p-4 w-full">
+            <span class="bg-violet-600 text-white font-extrabold text-[10px] px-2.5 py-0.5 rounded-full uppercase">Circuito Oficial</span>
+            <h2 class="text-lg font-bold text-white leading-tight mt-1">Copa Regional HoK & LoL 2026</h2>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: TORNEIOS -->
+      <section id="screen-tournaments" class="space-y-4 hidden animate-in fade-in duration-300">
+        <div>
+          <h2 class="text-xl font-bold text-white">Torneios e Copas</h2>
+          <p class="text-xs text-amber-400 font-medium">👉 Toque para ver detalhes ou segure por 0.5s para guardar!</p>
+        </div>
+        <div id="tournamentsList" class="space-y-3"></div>
+      </section>
+
+      <!-- SCREEN 3: COMUNIDADE (Feed Expandido) -->
+      <section id="screen-community" class="space-y-4 hidden animate-in fade-in duration-300">
+        <div>
+          <h2 class="text-xl font-bold text-white">Feed da Comunidade</h2>
+          <p class="text-xs text-emerald-400 font-medium">👉 Dê um duplo clique na imagem para curtir!</p>
+        </div>
+
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-3.5 space-y-3">
+          <div class="flex items-center gap-3">
+            <img id="feedUserAvatar" src="https://images.unsplash.com/photo-1566577739112-5180d4bf9390?auto=format&fit=crop&q=80&w=200" class="w-9 h-9 rounded-full object-cover border border-zinc-700 shrink-0" />
+            <input id="postInput" type="text" placeholder="Partilhe a sua jogada na selva ou recrute para o seu time..." class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div class="flex justify-between items-center pt-1 border-t border-zinc-800/80">
+            <span class="text-[11px] text-zinc-500 font-medium">Publicando como <strong id="feedUserName" class="text-zinc-300">Yuri Honorato</strong></span>
+            <button onclick="createNewPost()" class="touch-target bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold text-xs px-4 py-2 rounded-xl transition-colors">
+              Publicar
+            </button>
+          </div>
+        </div>
+
+        <div id="postsFeedList" class="space-y-5"></div>
+      </section>
+
+      <!-- SCREEN 4: PERFIL -->
+      <section id="screen-profile" class="space-y-4 hidden animate-in fade-in duration-300">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden relative">
+          <div class="h-24 bg-gradient-to-r from-emerald-900 via-zinc-900 to-violet-900 w-full relative"></div>
+
+          <div class="px-4 pb-4 pt-0 relative">
+            <div class="flex justify-between items-end -mt-10 mb-3">
+              <img id="profileAvatarImg" src="https://images.unsplash.com/photo-1566577739112-5180d4bf9390?auto=format&fit=crop&q=80&w=200" class="w-20 h-20 rounded-full border-4 border-zinc-900 object-cover bg-zinc-800 shadow-xl" />
+              
+              <button onclick="openEditProfileModal()" class="touch-target px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold rounded-xl transition-colors border border-zinc-700/80 flex items-center gap-1.5 shadow">
+                <i data-lucide="edit-3" class="w-4 h-4"></i> Editar Perfil
+              </button>
+            </div>
+
+            <h2 id="profileName" class="text-lg font-bold text-white">Yuri Honorato</h2>
+            <p id="profileHandle" class="text-xs text-zinc-400 font-medium">@Yuri_Jungle</p>
+            
+            <div class="mt-3 space-y-2 text-xs">
+              <div class="flex items-center gap-2 text-zinc-300 bg-zinc-950 p-2.5 rounded-xl border border-zinc-800/80">
+                <i data-lucide="gamepad-2" class="w-4 h-4 text-emerald-400"></i>
+                <span><strong>Jogo Favorito:</strong> <span id="profileFavGame">Honor of Kings (Selva)</span></span>
+              </div>
+              
+              <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800/80 space-y-1.5">
+                <span class="text-zinc-400 flex items-center gap-1.5 font-semibold"><i data-lucide="award" class="w-4 h-4 text-amber-400"></i> Títulos & Conquistas:</span>
+                <div id="profileTitlesList" class="flex flex-wrap gap-1.5 pt-1"></div>
+              </div>
+
+              <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800/80 space-y-1">
+                <span class="text-zinc-400 font-semibold">Biografia:</span>
+                <p id="profileBio" class="text-zinc-300 leading-relaxed">Praticante de Taekwondo e competidor de eSports na rota da selva.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800 h-16 px-2 flex items-center justify-around absolute bottom-0 left-0 right-0 z-30">
+      <button onclick="switchTab('home')" id="tab-home" class="touch-target nav-tab flex-1 flex flex-col items-center justify-center text-emerald-400">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-[10px] font-bold mt-1">Início</span>
+      </button>
+      <button onclick="switchTab('tournaments')" id="tab-tournaments" class="touch-target nav-tab flex-1 flex flex-col items-center justify-center text-zinc-400">
+        <i data-lucide="trophy" class="w-5 h-5"></i>
+        <span class="text-[10px] font-bold mt-1">Torneios</span>
+      </button>
+      <button onclick="switchTab('community')" id="tab-community" class="touch-target nav-tab flex-1 flex flex-col items-center justify-center text-zinc-400">
+        <i data-lucide="users" class="w-5 h-5"></i>
+        <span class="text-[10px] font-bold mt-1">Comunidade</span>
+      </button>
+      <button onclick="switchTab('profile')" id="tab-profile" class="touch-target nav-tab flex-1 flex flex-col items-center justify-center text-zinc-400">
+        <i data-lucide="user" class="w-5 h-5"></i>
+        <span class="text-[10px] font-bold mt-1">Perfil</span>
+      </button>
+    </nav>
+
+    <!-- MODAL: DETALHES DO TORNEIO -->
+    <div id="tournamentDetailOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-end justify-center" onclick="closeTournamentDetailModal(event)">
+      <div id="tournamentDetailSheet" class="bottom-sheet closed w-full max-w-md bg-zinc-900 border-t border-emerald-500/40 rounded-t-3xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+        <div class="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-1"></div>
+        
+        <div class="flex justify-between items-center pb-2 border-b border-zinc-800">
+          <span id="modalTourneyGame" class="bg-emerald-500/20 text-emerald-400 font-bold text-[10px] px-2.5 py-1 rounded-md border border-emerald-500/30">Honor of Kings</span>
+          <button onclick="closeTournamentDetailModal()" class="touch-target p-2 text-zinc-400 hover:text-white rounded-lg">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div class="space-y-3">
+          <img id="modalTourneyImg" src="" class="w-full h-40 object-cover rounded-xl border border-zinc-800" />
+          <h3 id="modalTourneyTitle" class="text-lg font-bold text-white">Título do Torneio</h3>
+          <p id="modalTourneyDesc" class="text-xs text-zinc-300 leading-relaxed">Descrição detalhada.</p>
+
+          <div class="grid grid-cols-2 gap-2 bg-zinc-950 p-3 rounded-xl border border-zinc-800 text-xs">
+            <div><span class="text-zinc-500 block">Premiação:</span> <strong id="modalTourneyPrize" class="text-amber-400">R$ 15.000</strong></div>
+            <div><span class="text-zinc-500 block">Status:</span> <strong id="modalTourneyStatus" class="text-emerald-400">Em Andamento</strong></div>
+          </div>
+
+          <a id="modalExternalBtn" href="#" target="_blank" class="w-full touch-target bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold text-xs py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg">
+            <i data-lucide="external-link" class="w-4 h-4"></i> Aceder ao Site Oficial da Organização
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: EDITAR PERFIL -->
+    <div id="editProfileOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-end justify-center" onclick="closeEditProfileModal(event)">
+      <div id="editProfileSheet" class="bottom-sheet closed w-full max-w-md bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+        <div class="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-1"></div>
+        <div class="flex justify-between items-center pb-2 border-b border-zinc-800">
+          <h3 class="text-base font-bold text-white">Editar Perfil Gamer</h3>
+          <button onclick="closeEditProfileModal()" class="touch-target p-2 text-zinc-400 hover:text-white rounded-lg">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <form onsubmit="saveProfile(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-zinc-400 mb-1">Nome</label>
+            <input id="inputName" type="text" required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-zinc-400 mb-1">Nome de Utilizador (@)</label>
+            <input id="inputHandle" type="text" required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-zinc-400 mb-1">Jogo Favorito</label>
+            <input id="inputFavGame" type="text" required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-zinc-400 mb-1">Títulos / Conquistas (separados por vírgula)</label>
+            <input id="inputTitles" type="text" required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-zinc-400 mb-1">URL da Foto de Perfil</label>
+            <input id="inputAvatar" type="url" required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-zinc-400 mb-1">Biografia</label>
+            <textarea id="inputBio" rows="3" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-emerald-500 resize-none"></textarea>
+          </div>
+          <button type="submit" class="w-full touch-target bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold text-xs py-3 rounded-xl transition-colors mt-2">
+            Salvar Alterações
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: COMENTÁRIOS -->
+    <div id="commentsOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-end justify-center" onclick="closeCommentsModal(event)">
+      <div id="commentsSheet" class="bottom-sheet closed w-full max-w-md bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-5 space-y-4 shadow-2xl max-h-[85vh] flex flex-col" onclick="event.stopPropagation()">
+        <div class="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-1"></div>
+        <div class="flex justify-between items-center pb-2 border-b border-zinc-800 shrink-0">
+          <h3 class="text-base font-bold text-white">Comentários</h3>
+          <button onclick="closeCommentsModal()" class="touch-target p-2 text-zinc-400 hover:text-white rounded-lg">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+        <div id="commentsListContainer" class="flex-1 overflow-y-auto space-y-3 py-2"></div>
+        <div class="pt-3 border-t border-zinc-800 flex gap-2 shrink-0">
+          <input id="commentInput" type="text" placeholder="Escreva um comentário..." class="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500" />
+          <button onclick="submitComment()" class="touch-target bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold text-xs px-4 rounded-xl">Enviar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: AO VIVO -->
+    <div id="liveMatchOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-end justify-center" onclick="closeLiveMatchModal(event)">
+      <div id="liveMatchSheet" class="bottom-sheet closed w-full max-w-md bg-zinc-900 border-t border-emerald-500/40 rounded-t-3xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+        <div class="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mb-1"></div>
+        <div class="flex justify-between items-center pb-3 border-b border-zinc-800">
+          <span class="text-xs font-extrabold text-red-400 uppercase">Telemetria Ao Vivo</span>
+          <button onclick="closeLiveMatchModal()" class="touch-target p-2 text-zinc-400 hover:text-white rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="bg-zinc-950 p-4 rounded-2xl border border-zinc-800 space-y-2 text-center">
+          <span class="text-xs text-zinc-400">Honor of Kings Pro Series</span>
+          <div class="flex justify-around items-center py-2">
+            <span class="font-bold text-white text-base">Alpha 7</span>
+            <span class="text-emerald-400 font-black text-lg">1 - 0</span>
+            <span class="font-bold text-white text-base">Influence</span>
+          </div>
+        </div>
+        <button onclick="closeLiveMatchModal()" class="w-full touch-target bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold text-xs py-3 rounded-xl">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let userProfile = {
+      name: "Yuri Honorato",
+      handle: "@Yuri_Jungle",
+      favGame: "Honor of Kings (Selva)",
+      titles: ["MVP Copa Regional 2025", "Campeão Seletiva ES 2026", "Top 50 Server HoK"],
+      bio: "Praticante de Taekwondo e competidor de eSports na rota da selva. Main Agudo, Kaizer e Nakoruru.",
+      avatar: "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?auto=format&fit=crop&q=80&w=200"
+    };
+
+    const ALL_TOURNAMENTS = [
+      { id: 1, title: 'Copa Regional HoK 2026', game: 'Honor of Kings', prize: 'R$ 15.000', status: 'Em Andamento', image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=300', description: 'Circuito oficial de Honor of Kings com as melhores equipas da região.', link: 'https://www.honorofkings.com', saved: false },
+      { id: 2, title: 'Valorant Masters Qualifiers', game: 'Valorant', prize: 'R$ 8.000', status: 'Inscrições Abertas', image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=300', description: 'Eliminatórias diretas em formato md3.', link: 'https://valorantesports.com', saved: false },
+      { id: 3, title: 'CS2 Major Championship', game: 'CS2', prize: 'R$ 20.000', status: 'Brevemente', image: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&q=80&w=300', description: 'O maior campeonato tático do semestre.', link: 'https://blog.counter-strike.net', saved: false },
+      { id: 4, title: 'League of Legends Challenger', game: 'League of Legends', prize: 'R$ 12.000', status: 'Em Andamento', image: 'https://images.unsplash.com/photo-1534423861386-85a16f5d13fd?auto=format&fit=crop&q=80&w=300', description: 'Disputa acirrada nas rotas de Summoner\'s Rift.', link: 'https://lolesports.com', saved: false },
+      { id: 5, title: 'Dota 2 Invitational Cup', game: 'Dota 2', prize: 'R$ 10.000', status: 'Inscrições Abertas', image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=300', description: 'Confrontos estratégicos 5v5.', link: 'https://www.dota2.com/esports', saved: false }
+    ];
+
+    // --- FEED DA COMUNIDADE EXPANDIDO ---
+    const COMMUNITY_POSTS = [
+      { 
+        id: 101, 
+        author: 'Alpha 7', 
+        text: 'Treinamento intensivo na selva hoje com Agudo e Kaizer! O foco é total no mundial.', 
+        likes: 142, 
+        liked: false, 
+        image: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&q=80&w=600',
+        comments: [
+          { author: 'LOUD_Fan', text: 'Boa sorte rapazes! Joguem muito.' },
+          { author: 'Yuri Honorato', text: 'Lineup pesada demais!' }
+        ]
+      },
+      { 
+        id: 102, 
+        author: 'Influence Rage', 
+        text: 'Fechamos os treinos táticos focados no controle do Overlord. Excelente sinergia da equipe!', 
+        likes: 230, 
+        liked: false, 
+        image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=600',
+        comments: [
+          { author: 'Coach_X', text: 'Evolução constante nos objetivos.' }
+        ]
+      },
+      { 
+        id: 103, 
+        author: 'Loops Esports', 
+        text: 'Quem mais curte usar Heino e Nakoruru na selva nas ranqueadas atuais? Comenta aí!', 
+        likes: 415, 
+        liked: false, 
+        image: 'https://images.unsplash.com/photo-1534423861386-85a16f5d13fd?auto=format&fit=crop&q=80&w=600',
+        comments: [
+          { author: 'Yuri Honorato', text: 'Nakoruru carry muito o late game!' },
+          { author: 'MainSelva', text: 'Heino tá muito forte mesmo.' }
+        ]
+      },
+      { 
+        id: 104, 
+        author: 'Comunidade eSports ES', 
+        text: 'Galera de Vila Velha e região, quem vai montar line para a seletiva regional de HoK deste mês?', 
+        likes: 98, 
+        liked: false, 
+        image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=600',
+        comments: []
+      }
+    ];
+
+    let activeCommentPostId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderTournamentsList();
+      renderCommunityFeed();
+      updateProfileUI();
+      lucide.createIcons();
+      document.getElementById('openDrawerBtn').addEventListener('click', openDrawer);
+    });
+
+    function switchTab(tabId) {
+      ['home', 'tournaments', 'community', 'profile'].forEach(s => {
+        document.getElementById(`screen-${s}`).classList.add('hidden');
+        document.getElementById(`tab-${s}`).classList.replace('text-emerald-400', 'text-zinc-400');
+      });
+      document.getElementById(`screen-${tabId}`).classList.remove('hidden');
+      document.getElementById(`tab-${tabId}`).classList.replace('text-zinc-400', 'text-emerald-400');
+      window.scrollTo(0,0);
+    }
+
+    function openDrawer() {
+      document.getElementById('drawerOverlay').classList.remove('hidden');
+      document.getElementById('drawer').classList.remove('closed');
+    }
+    function closeDrawer() {
+      document.getElementById('drawerOverlay').classList.add('hidden');
+      document.getElementById('drawer').classList.add('closed');
+    }
+    function navigateDrawer(tab) {
+      closeDrawer();
+      switchTab(tab);
+    }
+
+    // --- PERFIL ---
+    function updateProfileUI() {
+      document.getElementById('profileName').textContent = userProfile.name;
+      document.getElementById('profileHandle').textContent = userProfile.handle;
+      document.getElementById('profileFavGame').textContent = userProfile.favGame;
+      document.getElementById('profileBio').textContent = userProfile.bio;
+      document.getElementById('profileAvatarImg').src = userProfile.avatar;
+      document.getElementById('headerAvatarImg').src = userProfile.avatar;
+      document.getElementById('drawerAvatarImg').src = userProfile.avatar;
+      document.getElementById('drawerUserName').textContent = userProfile.name;
+      document.getElementById('feedUserAvatar').src = userProfile.avatar;
+      document.getElementById('feedUserName').textContent = userProfile.name;
+
+      const titlesContainer = document.getElementById('profileTitlesList');
+      titlesContainer.innerHTML = userProfile.titles.map(t => `
+        <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold px-2.5 py-1 rounded-lg">${t}</span>
+      `).join('');
+    }
+
+    function openEditProfileModal() {
+      document.getElementById('inputName').value = userProfile.name;
+      document.getElementById('inputHandle').value = userProfile.handle;
+      document.getElementById('inputFavGame').value = userProfile.favGame;
+      document.getElementById('inputTitles').value = userProfile.titles.join(', ');
+      document.getElementById('inputAvatar').value = userProfile.avatar;
+      document.getElementById('inputBio').value = userProfile.bio;
+
+      document.getElementById('editProfileOverlay').classList.remove('hidden');
+      setTimeout(() => document.getElementById('editProfileSheet').classList.remove('closed'), 10);
+    }
+
+    function closeEditProfileModal() {
+      document.getElementById('editProfileSheet').classList.add('closed');
+      setTimeout(() => document.getElementById('editProfileOverlay').classList.add('hidden'), 300);
+    }
+
+    function saveProfile(e) {
+      e.preventDefault();
+      userProfile.name = document.getElementById('inputName').value;
+      userProfile.handle = document.getElementById('inputHandle').value;
+      userProfile.favGame = document.getElementById('inputFavGame').value;
+      userProfile.titles = document.getElementById('inputTitles').value.split(',').map(s => s.trim()).filter(Boolean);
+      userProfile.avatar = document.getElementById('inputAvatar').value;
+      userProfile.bio = document.getElementById('inputBio').value;
+
+      updateProfileUI();
+      closeEditProfileModal();
+    }
+
+    // --- DETALHES DO TORNEIO ---
+    function openTournamentDetail(id) {
+      const t = ALL_TOURNAMENTS.find(item => item.id === id);
+      if (!t) return;
+
+      document.getElementById('modalTourneyGame').textContent = t.game;
+      document.getElementById('modalTourneyImg').src = t.image;
+      document.getElementById('modalTourneyTitle').textContent = t.title;
+      document.getElementById('modalTourneyDesc').textContent = t.description;
+      document.getElementById('modalTourneyPrize').textContent = t.prize;
+      document.getElementById('modalTourneyStatus').textContent = t.status;
+      document.getElementById('modalExternalBtn').href = t.link;
+
+      document.getElementById('tournamentDetailOverlay').classList.remove('hidden');
+      setTimeout(() => document.getElementById('tournamentDetailSheet').classList.remove('closed'), 10);
+    }
+
+    function closeTournamentDetailModal() {
+      document.getElementById('tournamentDetailSheet').classList.add('closed');
+      setTimeout(() => document.getElementById('tournamentDetailOverlay').classList.add('hidden'), 300);
+    }
+
+    function renderTournamentsList() {
+      const listEl = document.getElementById('tournamentsList');
+      listEl.innerHTML = ALL_TOURNAMENTS.map(t => `
+        <div id="tourney-card-${t.id}" class="relative bg-zinc-900 border border-zinc-800 rounded-2xl p-3.5 flex gap-3 items-center overflow-hidden transition-transform duration-200 select-none cursor-pointer hover:border-zinc-700">
+          <div id="progress-${t.id}" class="absolute inset-0 bg-zinc-800/50 w-0 transition-all duration-500 pointer-events-none"></div>
+          
+          <img src="${t.image}" class="w-20 h-20 rounded-xl object-cover shrink-0 relative z-10" />
+          <div class="flex-1 relative z-10">
+            <span class="text-[9px] font-extrabold text-emerald-400 uppercase">${t.game}</span>
+            <h4 class="font-bold text-white text-sm">${t.title}</h4>
+            <span class="text-amber-400 text-xs font-semibold mt-1 block">${t.prize}</span>
+          </div>
+
+          <div id="save-badge-${t.id}" class="absolute right-4 top-1/2 -translate-y-1/2 bg-zinc-950 p-2 rounded-full border border-zinc-800 transition-all duration-300 pointer-events-none z-10 ${t.saved ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}">
+            <i data-lucide="bookmark" class="w-5 h-5 text-amber-400 fill-amber-400"></i>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+      attachLongPressAndClickEvents();
+    }
+
+    function attachLongPressAndClickEvents() {
+      ALL_TOURNAMENTS.forEach(t => {
+        const card = document.getElementById(`tourney-card-${t.id}`);
+        const progress = document.getElementById(`progress-${t.id}`);
+        const badge = document.getElementById(`save-badge-${t.id}`);
+        let pressTimer;
+        let isLongPress = false;
+
+        const startPress = () => {
+          isLongPress = false;
+          card.classList.add('scale-[0.98]');
+          progress.style.width = '100%';
+          pressTimer = setTimeout(() => {
+            isLongPress = true;
+            t.saved = !t.saved;
+            if (t.saved) {
+              badge.classList.replace('scale-50', 'scale-100');
+              badge.classList.replace('opacity-0', 'opacity-100');
+              if (navigator.vibrate) navigator.vibrate(50);
+            } else {
+              badge.classList.replace('scale-100', 'scale-50');
+              badge.classList.replace('opacity-100', 'opacity-0');
+            }
+            progress.style.width = '0%';
+            card.classList.remove('scale-[0.98]');
+          }, 500);
+        };
+
+        const endPress = () => {
+          clearTimeout(pressTimer);
+          progress.style.width = '0%';
+          card.classList.remove('scale-[0.98]');
+          if (!isLongPress) {
+            openTournamentDetail(t.id);
+          }
+        };
+
+        card.addEventListener('touchstart', startPress, { passive: true });
+        card.addEventListener('touchend', endPress);
+        card.addEventListener('touchcancel', () => { clearTimeout(pressTimer); progress.style.width = '0%'; card.classList.remove('scale-[0.98]'); });
+        card.addEventListener('mousedown', startPress);
+        card.addEventListener('mouseup', endPress);
+        card.addEventListener('mouseleave', () => { clearTimeout(pressTimer); progress.style.width = '0%'; card.classList.remove('scale-[0.98]'); });
+      });
+    }
+
+    // --- COMUNIDADE & COMENTÁRIOS ---
+    function openCommentsModal(postId) {
+      activeCommentPostId = postId;
+      renderCommentsList();
+      document.getElementById('commentsOverlay').classList.remove('hidden');
+      setTimeout(() => document.getElementById('commentsSheet').classList.remove('closed'), 10);
+    }
+    function closeCommentsModal() {
+      document.getElementById('commentsSheet').classList.add('closed');
+      setTimeout(() => document.getElementById('commentsOverlay').classList.add('hidden'), 300);
+      activeCommentPostId = null;
+    }
+    function renderCommentsList() {
+      const post = COMMUNITY_POSTS.find(p => p.id === activeCommentPostId);
+      const container = document.getElementById('commentsListContainer');
+      if (!post || !container) return;
+
+      if (post.comments.length === 0) {
+        container.innerHTML = `<p class="text-xs text-zinc-500 text-center py-6">Ainda não há comentários. Seja o primeiro!</p>`;
+        return;
+      }
+      container.innerHTML = post.comments.map(c => `
+        <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 space-y-1">
+          <span class="text-xs font-bold text-emerald-400">${c.author}</span>
+          <p class="text-xs text-zinc-300 leading-relaxed">${c.text}</p>
+        </div>
+      `).join('');
+    }
+    function submitComment() {
+      const input = document.getElementById('commentInput');
+      if (!input.value.trim() || !activeCommentPostId) return;
+
+      const post = COMMUNITY_POSTS.find(p => p.id === activeCommentPostId);
+      if (post) {
+        post.comments.push({ author: userProfile.name, text: input.value.trim() });
+        input.value = '';
+        renderCommentsList();
+        renderCommunityFeed();
+      }
+    }
+
+    function renderCommunityFeed() {
+      const feedEl = document.getElementById('postsFeedList');
+      feedEl.innerHTML = COMMUNITY_POSTS.map(p => `
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden pb-3">
+          <div class="p-3 flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center font-bold text-xs text-emerald-400">${p.author.substring(0,2).toUpperCase()}</div>
+            <span class="font-bold text-white text-sm">${p.author}</span>
+          </div>
+          
+          <div class="relative w-full h-56 select-none cursor-pointer" id="img-wrapper-${p.id}">
+            <img src="${p.image}" class="w-full h-full object-cover" alt="Post" />
+            <div id="big-heart-overlay-${p.id}" class="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/30 opacity-0 transition-opacity duration-200 hidden">
+              <i data-lucide="heart" id="big-heart-icon-${p.id}" class="w-24 h-24 text-red-500 fill-red-500 drop-shadow-2xl scale-50 opacity-0 transition-all duration-300"></i>
+            </div>
+          </div>
+          
+          <div class="p-4 space-y-3">
+            <div class="flex items-center gap-4">
+              <button onclick="toggleLike(${p.id})" id="btn-like-${p.id}" class="touch-target flex items-center gap-1.5 focus:outline-none transition-colors ${p.liked ? 'text-red-500' : 'text-zinc-400'}">
+                <i data-lucide="heart" id="icon-like-${p.id}" class="w-6 h-6 ${p.liked ? 'fill-red-500' : ''}"></i>
+                <span id="count-like-${p.id}" class="font-medium">${p.likes}</span>
+              </button>
+              <button onclick="openCommentsModal(${p.id})" class="touch-target flex items-center gap-1.5 text-zinc-400 hover:text-emerald-400 transition-colors">
+                <i data-lucide="message-square" class="w-5 h-5"></i>
+                <span class="font-medium text-xs">${p.comments.length}</span>
+              </button>
+            </div>
+            <p class="text-xs text-zinc-300 leading-relaxed"><span class="font-bold text-white">${p.author}</span> ${p.text}</p>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+      attachDoubleTapEvents();
+    }
+
+    function attachDoubleTapEvents() {
+      COMMUNITY_POSTS.forEach(p => {
+        const imgWrapper = document.getElementById(`img-wrapper-${p.id}`);
+        let lastTap = 0;
+        imgWrapper.addEventListener('click', (e) => {
+          const currentTime = new Date().getTime();
+          const tapLength = currentTime - lastTap;
+          if (tapLength < 300 && tapLength > 0) {
+            e.preventDefault();
+            triggerDoubleTapAnimation(p.id);
+          }
+          lastTap = currentTime;
+        });
+      });
+    }
+
+    function triggerDoubleTapAnimation(postId) {
+      const overlay = document.getElementById(`big-heart-overlay-${postId}`);
+      const bigHeart = document.getElementById(`big-heart-icon-${postId}`);
+      overlay.classList.remove('hidden');
+      setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+      setTimeout(() => {
+        bigHeart.classList.replace('scale-50', 'scale-125');
+        bigHeart.classList.replace('opacity-0', 'opacity-100');
+        if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
+      }, 50);
+      setTimeout(() => {
+        bigHeart.classList.replace('scale-125', 'scale-50');
+        bigHeart.classList.replace('opacity-100', 'opacity-0');
+        overlay.classList.add('opacity-0');
+        setTimeout(() => overlay.classList.add('hidden'), 200);
+      }, 800);
+
+      const post = COMMUNITY_POSTS.find(p => p.id === postId);
+      if (!post.liked) toggleLike(postId);
+    }
+
+    function toggleLike(postId) {
+      const post = COMMUNITY_POSTS.find(p => p.id === postId);
+      if (!post) return;
+      post.liked = !post.liked;
+      post.likes += post.liked ? 1 : -1;
+      const btn = document.getElementById(`btn-like-${postId}`);
+      const icon = document.getElementById(`icon-like-${postId}`);
+      const count = document.getElementById(`count-like-${postId}`);
+      count.textContent = post.likes;
+      if (post.liked) {
+        btn.classList.replace('text-zinc-400', 'text-red-500');
+        icon.classList.add('fill-red-500', 'pulse-quick');
+        setTimeout(() => icon.classList.remove('pulse-quick'), 300);
+      } else {
+        btn.classList.replace('text-red-500', 'text-zinc-400');
+        icon.classList.remove('fill-red-500');
+      }
+    }
+
+    function createNewPost() {
+      const input = document.getElementById('postInput');
+      if (!input.value.trim()) return;
+      COMMUNITY_POSTS.unshift({
+        id: Date.now(),
+        author: userProfile.name,
+        text: input.value.trim(),
+        likes: 0,
+        liked: false,
+        image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=600',
+        comments: []
+      });
+      input.value = '';
+      renderCommunityFeed();
+    }
+
+    function openLiveMatchModal() {
+      document.getElementById('liveMatchOverlay').classList.remove('hidden');
+      setTimeout(() => document.getElementById('liveMatchSheet').classList.remove('closed'), 10);
+    }
+    function closeLiveMatchModal() {
+      document.getElementById('liveMatchSheet').classList.add('closed');
+      setTimeout(() => document.getElementById('liveMatchOverlay').classList.add('hidden'), 300);
+    }
+  </script>
+</body>
+</html>
